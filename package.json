@@ -4,7 +4,8 @@
   "description": "scraping info from webpages with mongodb",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -23,5 +24,6 @@
     "express-handlebars": "^3.0.0",
     "mongoose": "^4.12.5",
     "request": "^2.83.0"
-  }
+  },
+  "devDependencies": {}
 }
