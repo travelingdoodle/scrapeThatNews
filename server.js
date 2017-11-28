@@ -1,82 +1,50 @@
-// Dependencies
+/*==================================Dependencies====================================*/
 var express = require("express");
-var mongojs = require("mongojs");
-// Require request and cheerio. This makes the scraping possible
-var request = require("request");
-var cheerio = require("cheerio");
+var exphbs = require('express-handlebars');
+var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+// var mongojs = require("mongojs");
+
+// Set up port for host or default to 3000
+var PORT = process.env.PORT || 3000;
 
 // Initialize Express
 var app = express();
 
-// Database configuration
-var databaseUrl = "scraper";
-var collections = ["scrapedData"];
+// require routes (thanks, Cam. Thanks. A. lot. I learned soooooo much.)
+var routes = require("./routes");
 
-// Hook mongojs configuration to the db variable
-var db = mongojs(databaseUrl, collections);
-db.on("error", function(error) {
-  console.log("Database Error:", error);
-});
+// Serve static content for the app from the "public" directory in the application directory.
+app.use(express.static("public"));
 
-// Main route (simple Hello World Message)
-app.get("/", function(req, res) {
-  res.send("Hello world");
-});
+// ********** IF looking @ this, can you tell me if the order of these things really makes a difference, becasue it doesn't seem to make a diff and I'm curious *********
 
-// Retrieve data from the db
-app.get("/all", function(req, res) {
-  // Find all results from the scrapedData collection in the db
-  db.scrapedData.find({}, function(error, found) {
-    // Throw any errors to the console
-    if (error) {
-      console.log(error);
-    }
-    // If there are no errors, send the data to the browser as json
-    else {
-      res.json(found);
-    }
-  });
-});
+// Parse application
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-// Scrape data from one site and place it into the mongodb db
-app.get("/scrape", function(req, res) {
-  // Make a request for the news section of ycombinator
-  request("https://news.ycombinator.com/", function(error, response, html) {
-    // Load the html body from request into cheerio
-    var $ = cheerio.load(html);
-    // For each element with a "title" class
-    $(".title").each(function(i, element) {
-      // Save the text and href of each link enclosed in the current element
-      var title = $(element).children("a").text();
-      var link = $(element).children("a").attr("href");
+//register a Handlebars view engine and connect it to the express app
+// TBH tho, no one wanna use this
+app.engine('handlebars', exphbs({
+  defaultLayout: 'main',
+  partialsDir: path.join(__dirname, "/views/layouts/partials")
+}));
+app.set('view engine', 'handlebars');
 
-      // If this found element had both a title and a link
-      if (title && link) {
-        // Insert the data in the scrapedData db
-        db.scrapedData.insert({
-          title: title,
-          link: link
-        },
-        function(err, inserted) {
-          if (err) {
-            // Log the error if one is encountered during the query
-            console.log(err);
-          }
-          else {
-            // Otherwise, log the inserted data
-            console.log(inserted);
-          }
-        });
-      }
-    });
-  });
+// All requests go through the routes middleware
+app.use(routes);
 
-  // Send a "Scrape Complete" message to the browser
-  res.send("Scrape Complete");
-});
+// use either the deployed heroku db or the local version
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/scrapedData"
+
+// connects to Monogo DB and use ES6 promises
+mongoose.Promise = Promise;
+mongoose.connect(MONGODB_URI, {
+  useMongoClient: true
+})
 
 
-// Listen on port 3000
-app.listen(3000, function() {
-  console.log("App running on port 3000!");
+// Listening on port...
+app.listen(PORT, function () {
+  console.log("App running on port: " + PORT);
 });

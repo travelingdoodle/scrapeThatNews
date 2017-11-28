@@ -1,0 +1,26 @@
+<div class="contianer">
+    <div class="col-lg-12 jumbotro text-center">
+        <h1>Scrape That News With MongoDB!</h1>
+        <h5>Also includes: handlebars.js</h5>
+        <h3>Learn about how people work!</h3>
+
+    </div>
+</div>
+<div class="col-lg-12">
+    <tbody id="table-content" class="">
+        <!-- handlebars.js to populate all of the articles that have been scraped -->
+        {{#if this.Article}}
+            {{#each Article}}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4>{{this.title}}</h4>
+                    <button type="button" class="btn btn-success save" data-id={{this.id}}>Save For Later</button>
+                </div>
+                <div class="panel-body">
+                    <p>{{this.summary}}</p>
+                    <a href={{this.url}} target="_blank">{{this.url}}</a>
+                </div>
+            </div>
+            {{/each}}
+        {{/if}}
+</div>
